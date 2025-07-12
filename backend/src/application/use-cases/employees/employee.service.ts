@@ -173,4 +173,61 @@ export class EmployeeService {
                         );
                 }
         }
+
+        async updateByID(
+                id: number,
+                updateEmployeeDTO: UpdateEmployeeDTO,
+        ): Promise<Employee> {
+                //* Verificar existencia...
+                await this.findEmployeeByID(id);
+
+                //* Validar email único si se está actualizando...
+                if (
+                        updateEmployeeDTO.correo &&
+                        (await this.employeeRepository.existsWithEmail(
+                                updateEmployeeDTO.correo,
+                        ))
+                ) {
+                        throw new ConflictException(
+                                'El email ya está registrado...',
+                        );
+                }
+
+                return this.employeeRepository.updateByID(
+                        id,
+                        updateEmployeeDTO,
+                );
+        }
+
+        async updateByCedula(
+                cedula: string,
+                updateEmployeeDTO: UpdateEmployeeDTO,
+        ) {
+                //* Verificar existencia...
+                await this.findByCedula(cedula);
+
+                //* Validar email único si se está actualizando...
+                if (
+                        updateEmployeeDTO.correo &&
+                        (await this.employeeRepository.existsWithEmail(
+                                updateEmployeeDTO.correo,
+                        ))
+                ) {
+                        throw new ConflictException(
+                                'El email ya está registrado...',
+                        );
+                }
+
+                return this.employeeRepository.updateByCedula(
+                        cedula,
+                        updateEmployeeDTO,
+                );
+        }
+
+        async delete(id: number): Promise<void> {
+                //* Verificar existencia...
+                await this.findEmployeeByID(id);
+
+                await this.employeeRepository.delete(id);
+        }
 }
