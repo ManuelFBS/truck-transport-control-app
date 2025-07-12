@@ -4,12 +4,12 @@ import {
         ConflictException,
         NotFoundException,
 } from '@nestjs/common';
-import { Employee } from '../../core/entities/employees/employee.entity';
-import { EmployeeRepository } from '../../core/repositories/employees/employee.repository';
+import { Employee } from '../../../core/entities/employees/employee.entity';
+import { EmployeeRepository } from '../../../core/repositories/employees/employee.repository';
 import {
         CreateEmployeeDTO,
         UpdateEmployeeDTO,
-} from '../dto/employees/create-employee.dto';
+} from '../../dto/employees/create-employee.dto';
 
 @Injectable()
 export class EmployeeService {
