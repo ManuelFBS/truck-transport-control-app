@@ -1,6 +1,6 @@
 export enum TypeOfContract {
         FIJO = 'Fijo',
-        INDETERMINADO = 'Indeterminado',
+        INDETERMINADO = 'Indeterminado', //! Cambiar a "Indefinido"...
 }
 
 export class Employee {
