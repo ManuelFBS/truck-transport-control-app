@@ -21,7 +21,7 @@ export abstract class EmployeeRepository {
                 cedula: string,
                 employee: Partial<Employee>,
         ): Promise<Employee>;
-        abstract delete(id: number): Promise<Employee>;
+        abstract delete(id: number): Promise<void>;
         abstract existsWithCedula(cedula: string): Promise<boolean>;
         abstract existsWithEmail(email: string): Promise<boolean>;
 }
