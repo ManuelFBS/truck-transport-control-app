@@ -296,4 +296,98 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                 });
                 return count > 0;
         }
+
+        async findByNombreOApellidoWithPagination(
+                nombres: string,
+                apellidos: string,
+                page: number = 1,
+                limit: number = 10,
+        ): Promise<{ employees: Employee[]; total: number }> {
+                //* Calcular el offset para la paginación...
+                const offset = (page - 1) * limit;
+
+                //* Construir las condiciones de búsqueda...
+                const whereConditions: any = [];
+
+                if (nombres && nombres.trim()) {
+                        const normalizedNombres = this.normalizeText(nombres);
+                        const nombreWords = this.splitIntoWords(nombres);
+
+                        whereConditions.push({
+                                nombres: {
+                                        contains: normalizedNombres,
+                                        mode: 'insensitive',
+                                },
+                        });
+
+                        if (nombreWords.length > 1) {
+                                const wordConditions = nombreWords.map(
+                                        (word) => ({
+                                                nombres: {
+                                                        contains: word,
+                                                        mode: 'insensitive',
+                                                },
+                                        }),
+                                );
+
+                                whereConditions.push({
+                                        AND: wordConditions,
+                                });
+                        }
+                }
+
+                if (apellidos && apellidos.trim()) {
+                        const normalizedApellidos =
+                                this.normalizeText(apellidos);
+                        const apellidoWords = this.splitIntoWords(apellidos);
+
+                        whereConditions.push({
+                                apellidos: {
+                                        contains: normalizedApellidos,
+                                        mode: 'insensitive',
+                                },
+                        });
+
+                        if (apellidoWords.length > 1) {
+                                const wordConditions = apellidoWords.map(
+                                        (word) => ({
+                                                apellidos: {
+                                                        contains: word,
+                                                        mode: 'insensitive',
+                                                },
+                                        }),
+                                );
+
+                                whereConditions.push({
+                                        AND: wordConditions,
+                                });
+                        }
+                }
+
+                const whereClause =
+                        whereConditions.length > 0
+                                ? { OR: whereConditions }
+                                : {};
+
+                //* Realizar consulta con paginación...
+                const [employees, total] = await Promise.all([
+                        this.prisma.employee.findMany({
+                                where: whereClause,
+                                orderBy: {
+                                        nombres: 'asc',
+                                        apellidos: 'asc',
+                                },
+                                skip: offset,
+                                take: limit,
+                        }),
+                        this.prisma.employee.count({
+                                where: whereClause,
+                        }),
+                ]);
+
+                return {
+                        employees: employees.map((emp) => this.toDomain(emp)),
+                        total,
+                };
+        }
 }
