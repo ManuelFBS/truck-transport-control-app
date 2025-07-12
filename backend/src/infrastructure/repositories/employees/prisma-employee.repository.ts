@@ -130,6 +130,12 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                 return employee ? this.toDomain(employee) : null;
         }
 
+        /**
+         *
+         * @param nombres - Nombres a buscar (uno o ambos, puede ser parcial)...
+         * @param apellidos - Apellidos a buscar (uno o ambos, puede ser parcial)...
+         * @returns - Retorna el(los) empleado(s) encontrado(s)...
+         */
         async findByNombreOApellido(
                 nombres: string,
                 apellidos: string,
@@ -297,6 +303,15 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                 return count > 0;
         }
 
+        /**
+         * Realiza una búsqueda paginada de empleados por nombre o apellido.
+         *
+         * @param {string} nombres - Nombres a buscar (puede ser parcial).
+         * @param {string} apellidos - Apellidos a buscar (puede ser parcial).
+         * @param {number} page - Número de página para la paginación.
+         * @param {number} limit - Cantidad de resultados por página.
+         * @returns {Promise<{ employees: Employee[]; total: number }>} Empleados encontrados y el total.
+         */
         async findByNombreOApellidoWithPagination(
                 nombres: string,
                 apellidos: string,
