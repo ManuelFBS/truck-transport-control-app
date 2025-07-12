@@ -12,6 +12,10 @@ import {
         CreateEmployeeDTO,
         UpdateEmployeeDTO,
 } from '../../dto/employees/create-employee.dto';
+import {
+        SearchEmployeeDTO,
+        PaginatedEmployeeResponse,
+} from '../../dto/employees/search-employee.dto';
 
 @Injectable()
 export class EmployeeService {
@@ -96,59 +100,76 @@ export class EmployeeService {
         }
 
         async findByNombreOApellido(
-                nombres: string,
-                apellidos: string,
-        ): Promise<Employee[]> {
+                searchDTO: SearchEmployeeDTO,
+        ): Promise<PaginatedEmployeeResponse> {
                 try {
-                        //* Validación de parámetros...
-                        const nombresTrimmed = nombres?.trim() || '';
-                        const apellidosTrimmed = apellidos?.trim() || '';
+                        //* Validación de parámetros
+                        const nombresTrimmed = searchDTO.nombres?.trim() || '';
+                        const apellidosTrimmed =
+                                searchDTO.apellidos?.trim() || '';
 
-                        //* Verificar que al menos uno de los parámetros tenga contenido...
+                        //* Verificar que al menos uno de los parámetros tenga contenido
                         if (!nombresTrimmed && !apellidosTrimmed) {
                                 throw new BadRequestException(
                                         'Debe proporcionar al menos un nombre o apellido para la búsqueda',
                                 );
                         }
 
-                        //* Validar longitud mínima de los parámetros...
+                        //* Validar longitud mínima de los parámetros
                         if (
-                                nombresTrimmed.length < 3 &&
-                                apellidosTrimmed.length < 3
+                                nombresTrimmed.length < 2 &&
+                                apellidosTrimmed.length < 2
                         ) {
                                 throw new BadRequestException(
-                                        'Los términos de búsqueda deben tener al menos 3 caracteres',
+                                        'Los términos de búsqueda deben tener al menos 2 caracteres',
                                 );
                         }
 
-                        //* Llamada al método del repo para realizar la búsqueda...
-                        const employees =
-                                await this.employeeRepository.findByNombreOApellido(
-                                        nombres,
-                                        apellidos,
+                        //* Obtener parámetros de paginación con valores por defecto
+                        const page = searchDTO.page || 1;
+                        const limit = searchDTO.limit || 10;
+
+                        //* Llamar al método del repositorio con paginación
+                        const { employees, total } =
+                                await this.employeeRepository.findByNombreOApellidoWithPagination(
+                                        nombresTrimmed,
+                                        apellidosTrimmed,
+                                        page,
+                                        limit,
                                 );
 
-                        //* Log para debugging (opcional)...
+                        //* Calcular información de paginación
+                        const totalPages = Math.ceil(total / limit);
+                        const hasNext = page < totalPages;
+                        const hasPrev = page > 1;
+
+                        //* Log para debugging
                         console.log(
-                                `Búsqueda realizada: nombres="${nombresTrimmed}", apellidos="${apellidosTrimmed}". Resultados: ${employees.length}`,
+                                `Búsqueda paginada: nombres="${nombresTrimmed}", apellidos="${apellidosTrimmed}". Página: ${page}, Límite: ${limit}, Total: ${total}`,
                         );
 
-                        //* Se retorna el array de empleados encontrados...
-                        //* Si no se encuentran empleados, el array estará vacío...
-                        return employees;
+                        return {
+                                employees,
+                                total,
+                                page,
+                                limit,
+                                totalPages,
+                                hasNext,
+                                hasPrev,
+                        };
                 } catch (error) {
-                        //* Si es un error que ya se maneja, se relanza...
+                        //* Si es un error que ya manejamos, lo relanzamos
                         if (error instanceof BadRequestException) {
                                 throw error;
                         }
 
-                        //* Para otros errores (base de datos, etc.), se lanza un error genérico...
+                        //* Para otros errores, lanzamos un error genérico
                         console.error(
-                                'Error en la búsqueda de empleados...',
+                                'Error en búsqueda paginada de empleados:',
                                 error,
                         );
                         throw new InternalServerErrorException(
-                                'Error interno del servidor al buscar empleados...',
+                                'Error interno del servidor al buscar empleados',
                         );
                 }
         }

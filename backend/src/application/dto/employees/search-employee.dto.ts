@@ -26,7 +26,7 @@ export class SearchEmployeeDTO {
 }
 
 export class PaginatedEmployeeResponse {
-        employee: Employee[];
+        employees: Employee[];
         total: number;
         page: number;
         limit: number;

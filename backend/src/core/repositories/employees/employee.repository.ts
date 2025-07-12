@@ -24,4 +24,10 @@ export abstract class EmployeeRepository {
         abstract delete(id: number): Promise<void>;
         abstract existsWithCedula(cedula: string): Promise<boolean>;
         abstract existsWithEmail(email: string): Promise<boolean>;
+        abstract findByNombreOApellidoWithPagination(
+                nombres: string,
+                apellidos: string,
+                page: number,
+                limit: number,
+        ): Promise<{ employees: Employee[]; total: number }>;
 }
