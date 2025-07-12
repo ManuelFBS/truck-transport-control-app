@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import {
@@ -42,6 +44,23 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                 }
         }
 
+        //* Método auxiliar para normalizar texto (eliminar acentos y caracteres especiales)...
+        private normalizeText(text: string): string {
+                return text
+                        .normalize('NFD') // Normaliza caracteres Unicode
+                        .replace(/[\u0300-\u036f]/g, '') // Elimina diacríticos (acentos)
+                        .toLowerCase() // Convierte a minúsculas
+                        .trim(); // Elimina espacios en blanco
+        }
+
+        //* Método auxiliar para dividir texto en palabras...
+        private splitIntoWords(text: string): string[] {
+                return text
+                        .split(/\s+/) // Divide por espacios (uno o más)
+                        .filter((word) => word.length > 0) // Filtra palabras vacías
+                        .map((word) => this.normalizeText(word)); // Normaliza cada palabra
+        }
+
         private toDomain(prismaEmployee: any): Employee {
                 return new Employee(
                         prismaEmployee.id,
@@ -59,23 +78,6 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                         prismaEmployee.createdAt,
                         prismaEmployee.updatedAt,
                 );
-        }
-
-        //* Método auxiliar para normalizar texto (eliminar acentos y caracteres especiales)...
-        private normalizeText(text: string): string {
-                return text
-                        .normalize('NFD') // Normaliza caracteres Unicode
-                        .replace(/[\u0300-\u036f]/g, '') // Elimina diacríticos (acentos)
-                        .toLowerCase() // Convierte a minúsculas
-                        .trim(); // Elimina espacios en blanco
-        }
-
-        //* Método auxiliar para dividir texto en palabras...
-        private splitIntoWords(text: string): string[] {
-                return text
-                        .split(/\s+/) // Divide por espacios (uno o más)
-                        .filter((word) => word.length > 0) // Filtra palabras vacías
-                        .map((word) => this.normalizeText(word)); // Normaliza cada palabra
         }
 
         async create(employee: Employee): Promise<Employee> {
