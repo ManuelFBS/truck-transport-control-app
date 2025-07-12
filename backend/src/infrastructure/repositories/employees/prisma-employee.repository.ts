@@ -10,6 +10,38 @@ import { EmployeeRepository } from '../../../core/repositories/employees/employe
 export class PrismaEmployeeRepository implements EmployeeRepository {
         constructor(private readonly prisma: PrismaService) {}
 
+        // Método auxiliar para convertir tu enum a el enum de Prisma
+        private mapTypeOfContractToPrisma(
+                tipo: TypeOfContract,
+        ): 'FIJO' | 'INDETERMINADO' {
+                switch (tipo) {
+                        case TypeOfContract.FIJO:
+                                return 'FIJO';
+                        case TypeOfContract.INDETERMINADO:
+                                return 'INDETERMINADO';
+                        default:
+                                throw new Error(
+                                        `Tipo de contrato no válido: ${String(tipo)}`,
+                                );
+                }
+        }
+
+        // Método auxiliar para convertir el enum de Prisma a tu enum
+        private mapPrismaTypeOfContractToDomain(
+                tipo: 'FIJO' | 'INDETERMINADO',
+        ): TypeOfContract {
+                switch (tipo) {
+                        case 'FIJO':
+                                return TypeOfContract.FIJO;
+                        case 'INDETERMINADO':
+                                return TypeOfContract.INDETERMINADO;
+                        default:
+                                throw new Error(
+                                        `Tipo de contrato de Prisma no válido: ${String(tipo)}`,
+                                );
+                }
+        }
+
         private toDomain(prismaEmployee: any): Employee {
                 return new Employee(
                         prismaEmployee.id,
@@ -21,7 +53,9 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                         prismaEmployee.telefono,
                         prismaEmployee.fecha_inicio_contrato,
                         prismaEmployee.fecha_final_contrato,
-                        prismaEmployee.tipo_contrato as TypeOfContract,
+                        this.mapPrismaTypeOfContractToDomain(
+                                prismaEmployee.tipo_contrato,
+                        ),
                         prismaEmployee.createdAt,
                         prismaEmployee.updatedAt,
                 );
@@ -40,8 +74,14 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
                                         employee.fecha_inicio_contrato,
                                 fecha_final_contrato:
                                         employee.fecha_final_contrato,
-                                tipo_contrato: employee.tipo_contrato,
+                                tipo_contrato: this.mapTypeOfContractToPrisma(
+                                        employee.tipo_contrato,
+                                ),
                         },
                 });
+
+                return this.toDomain(created);
         }
+
+        // ... resto de métodos que necesitas implementar
 }
