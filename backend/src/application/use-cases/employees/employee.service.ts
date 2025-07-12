@@ -1,7 +1,9 @@
 import {
         Injectable,
         Inject,
+        BadRequestException,
         ConflictException,
+        InternalServerErrorException,
         NotFoundException,
 } from '@nestjs/common';
 import { Employee } from '../../../core/entities/employees/employee.entity';
@@ -76,5 +78,78 @@ export class EmployeeService {
                         );
                 }
                 return employee;
+        }
+
+        async findByCedula(cedula: string): Promise<Employee> {
+                const employee =
+                        await this.employeeRepository.findByCedula(cedula);
+
+                if (!employee) {
+                        if (!employee) {
+                                throw new NotFoundException(
+                                        `Empleado con cédula ${cedula} no encontrado...`,
+                                );
+                        }
+                }
+
+                return employee;
+        }
+
+        async findByNombreOApellido(
+                nombres: string,
+                apellidos: string,
+        ): Promise<Employee[]> {
+                try {
+                        //* Validación de parámetros...
+                        const nombresTrimmed = nombres?.trim() || '';
+                        const apellidosTrimmed = apellidos?.trim() || '';
+
+                        //* Verificar que al menos uno de los parámetros tenga contenido...
+                        if (!nombresTrimmed && !apellidosTrimmed) {
+                                throw new BadRequestException(
+                                        'Debe proporcionar al menos un nombre o apellido para la búsqueda',
+                                );
+                        }
+
+                        //* Validar longitud mínima de los parámetros...
+                        if (
+                                nombresTrimmed.length < 3 &&
+                                apellidosTrimmed.length < 3
+                        ) {
+                                throw new BadRequestException(
+                                        'Los términos de búsqueda deben tener al menos 3 caracteres',
+                                );
+                        }
+
+                        //* Llamada al método del repo para realizar la búsqueda...
+                        const employees =
+                                await this.employeeRepository.findByNombreOApellido(
+                                        nombres,
+                                        apellidos,
+                                );
+
+                        //* Log para debugging (opcional)...
+                        console.log(
+                                `Búsqueda realizada: nombres="${nombresTrimmed}", apellidos="${apellidosTrimmed}". Resultados: ${employees.length}`,
+                        );
+
+                        //* Se retorna el array de empleados encontrados...
+                        //* Si no se encuentran empleados, el array estará vacío...
+                        return employees;
+                } catch (error) {
+                        //* Si es un error que ya se maneja, se relanza...
+                        if (error instanceof BadRequestException) {
+                                throw error;
+                        }
+
+                        //* Para otros errores (base de datos, etc.), se lanza un error genérico...
+                        console.error(
+                                'Error en la búsqueda de empleados...',
+                                error,
+                        );
+                        throw new InternalServerErrorException(
+                                'Error interno del servidor al buscar empleados...',
+                        );
+                }
         }
 }
