@@ -199,3 +199,23 @@ export class EmployeeResponseDTO {
         @ApiProperty()
         updatedAt: Date;
 }
+
+export class EmployeePublicResponseDTO {
+        @ApiProperty()
+        cedula: string;
+
+        @ApiProperty()
+        nombres: string;
+
+        @ApiProperty()
+        apellidos: string;
+
+        @ApiProperty()
+        fecha_nacimiento: Date;
+
+        @ApiProperty()
+        correo: string;
+
+        @ApiProperty()
+        telefono: string;
+}
